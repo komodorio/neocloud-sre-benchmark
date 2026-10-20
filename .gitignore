@@ -1,0 +1,15 @@
+results/
+failed-infra/
+archive/
+*.log
+*.pid
+queue*.txt
+PROVIDER_ACCESS_LOG.md
+reports/.done-*
+__pycache__/
+.env
+queue*.txt*
+q.new
+q.h
+*.tar.gz
+harness/

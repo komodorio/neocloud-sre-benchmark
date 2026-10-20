@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neocloud SRE Benchmark · Kimi K3 across inference providers · Komodor</title>
+<meta name="description" content="One AI SRE agent on Kimi K3 across five inference providers, 51 SREGym-Lite runs each: correctness, cost and latency. By Komodor.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Neocloud SRE Benchmark: Kimi K3 across inference providers">
+<meta property="og:description" content="One AI SRE agent on Kimi K3 across five inference providers, 51 SREGym-Lite runs each: correctness, cost and latency. By Komodor.">
+<meta property="og:url" content="https://komodorio.github.io/neocloud-sre-benchmark/">
+<meta property="og:image" content="https://komodorio.github.io/neocloud-sre-benchmark/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Neocloud SRE Benchmark: Kimi K3 on six inference providers against a Claude Sonnet 5 baseline">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://komodorio.github.io/neocloud-sre-benchmark/og.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
+<meta name="msapplication-TileColor" content="#0a0a0a">
+<meta name="msapplication-TileImage" content="apple-touch-icon.png">
+<script>(()=>{let s=null;try{s=localStorage.getItem("theme")}catch(e){}document.documentElement.dataset.theme=s||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")})()</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--bg:#fff;--surface:#fafafa;--hover:#f4f4f5;--fg:#0a0a0a;--text:#3f3f46;--mute:#6b6b74;--faint:#8b8b94;--line:#ececee;--line2:#e0e0e3;--pass:#16a34a;--good:#16a34a;--bad:#dc2626}
+[data-theme=dark]{color-scheme:dark;--bg:#09090b;--surface:#111113;--hover:#18181b;--fg:#fafafa;--text:#d4d4d8;--mute:#a1a1aa;--faint:#71717a;--line:#1f1f23;--line2:#2c2c31;--pass:#22c55e;--good:#22c55e;--bad:#f05252}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-underline-offset:3px;text-decoration-color:var(--faint)}
+a:hover{text-decoration-color:currentColor}
+b{font-weight:600;color:var(--fg)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+
+.nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:20px;height:52px}
+.title{font-weight:600;font-size:14.5px;text-decoration:none;white-space:nowrap}
+.links{margin-left:auto;display:flex;align-items:center;gap:2px}
+.links a{color:var(--mute);text-decoration:none;font-size:13.5px;padding:5px 9px;border-radius:6px}
+.links a:hover{color:var(--fg);background:var(--hover)}
+.theme{display:grid;place-items:center;width:32px;height:32px;border-radius:7px;border:1px solid var(--line2);background:transparent;color:var(--fg);cursor:pointer}
+.theme:hover{background:var(--hover)}
+.theme svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+[data-theme=dark] .i-moon,[data-theme=light] .i-sun{display:none}
+
+.brand{font-weight:700;font-size:14.5px;text-decoration:none}
+.sep{color:var(--faint);margin:0 -10px}
+
+header{padding:40px 0 4px}
+h1{font-size:30px;line-height:1.2;font-weight:650;letter-spacing:-.02em;margin:0 0 8px}
+.desc{color:var(--text);font-size:16px;max-width:780px;margin:0}
+.intro{display:grid;grid-template-columns:120px 1fr;margin:24px 0 0;max-width:880px;border-top:1px solid var(--line2)}
+.intro dt,.intro dd{margin:0;padding:12px 0;border-bottom:1px solid var(--line)}
+.intro dt{font-size:14px;font-weight:600;color:var(--fg)}
+.intro dd{font-size:14.5px;color:var(--text)}
+.updated{margin:14px 0 0;font-size:12.5px;color:var(--mute)}
+
+section{padding:44px 0 0}
+h2{font-size:18px;font-weight:600;letter-spacing:-.01em;margin:0 0 4px}
+.sub{color:var(--mute);font-size:13.5px;margin:0 0 16px;max-width:780px}
+.note{color:var(--mute);font-size:13px;margin:12px 0 0;max-width:860px}
+
+.tw{overflow-x:auto;border:1px solid var(--line2);border-radius:10px}
+table.data{width:100%;border-collapse:collapse}
+.data th{padding:0;text-align:right;background:var(--surface);border-bottom:1px solid var(--line2);white-space:nowrap}
+.data th button{all:unset;box-sizing:border-box;display:flex;justify-content:flex-end;align-items:center;gap:5px;width:100%;padding:10px 12px;cursor:pointer;font-size:12px;font-weight:500;color:var(--mute)}
+.data th.l button{justify-content:flex-start}
+.data th button:hover,.data th[aria-sort] button{color:var(--fg)}
+.data th button:focus-visible{outline:2px solid var(--fg);outline-offset:-2px}
+.data th button::after{content:"↕";opacity:.3;font-size:11px}
+.data th[aria-sort=ascending] button::after{content:"↑";opacity:1}
+.data th[aria-sort=descending] button::after{content:"↓";opacity:1}
+.data td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font:13px "JetBrains Mono",monospace;font-variant-numeric:tabular-nums;color:var(--text);background:var(--bg)}
+.data td.l{text-align:left;font:14px Inter,sans-serif}
+.data tbody tr:last-child td{border-bottom:0}
+.data tbody tr:hover td{background:var(--hover)}
+.data tr.ref td{background:var(--surface)}
+.data th:first-child,.data td:first-child{position:sticky;left:0;z-index:1}
+.data td.best{color:var(--fg);font-weight:600}
+.pv{display:flex;align-items:center;gap:9px}
+.pv small{display:block;font-size:11.5px;color:var(--mute);line-height:1.35}
+.lim{display:block;font-size:11px;color:var(--mute);line-height:1.3;white-space:normal;min-width:150px;max-width:190px;margin-left:auto;font-family:inherit}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;flex:none}
+.tag{font-size:10.5px;font-weight:500;color:var(--mute);border:1px solid var(--line2);border-radius:4px;padding:0 5px;margin-left:7px;vertical-align:1px}
+.e2e{display:inline-flex;align-items:center;gap:9px}
+.meter{width:56px;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%}
+.na{color:var(--mute)}
+.key{padding:0 5px;border-radius:4px;color:var(--fg)}
+.key.good{background:color-mix(in srgb,var(--good) 22%,var(--bg))}
+.key.bad{background:color-mix(in srgb,var(--bad) 22%,var(--bg))}
+.data td.w{white-space:normal;min-width:240px}
+.data td small.src{display:block;font:11.5px Inter,sans-serif;color:var(--mute)}
+svg .zone{font-size:11.5px;font-weight:600}
+svg .zone.good{fill:var(--good)}
+svg .zone.bad{fill:var(--bad)}
+.heat{display:inline-block;min-width:40px;text-align:center;padding:2px 0;border-radius:4px}
+
+.legend{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 24px;margin:14px 0 0;font-size:12.5px;color:var(--mute)}
+.legend dt{color:var(--fg);font-weight:500;display:inline}
+.legend dd{display:inline;margin:0}
+
+.charts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.card{border:1px solid var(--line2);border-radius:10px;padding:16px}
+.ct{font-weight:600;font-size:14.5px}
+.cs{font-size:12px;color:var(--mute);margin:1px 0 12px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:Inter,sans-serif;font-size:12px;fill:var(--mute)}
+svg .lbl{fill:var(--fg)}
+svg .val{font-family:"JetBrains Mono",monospace;font-size:11.5px;fill:var(--fg)}
+svg .track{fill:var(--line)}
+svg .whisk{stroke:var(--fg);stroke-opacity:.45;stroke-width:1.3;fill:none}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .tick{font-family:"JetBrains Mono",monospace;font-size:10.5px;fill:var(--mute)}
+svg .axis{font-size:12px;fill:var(--mute)}
+svg .plbl{fill:var(--fg);font-weight:500;font-size:12.5px}
+svg .dot{stroke:var(--bg);stroke-width:2}
+svg .corner{font-size:11.5px;fill:var(--faint)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line2);border-radius:8px;padding:2px;gap:2px}
+.seg button{all:unset;cursor:pointer;padding:4px 10px;border-radius:6px;font-size:13px;color:var(--mute)}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-selected=true]{background:var(--hover);color:var(--fg);font-weight:500}
+.seg button:focus-visible{outline:2px solid var(--fg)}
+.tabs{margin:0 0 12px}
+
+.findings{list-style:none;margin:0;padding:0;border-top:1px solid var(--line2)}
+.findings li{padding:13px 0;border-bottom:1px solid var(--line);font-size:15px;color:var(--text);max-width:920px}
+.findings li b{color:var(--fg)}
+
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.notes h4{margin:12px 0 3px;font-size:11.5px;font-weight:500;color:var(--mute)}
+.notes p,.notes li{font-size:13.5px;margin:0 0 4px;color:var(--text)}
+.notes ul{margin:0;padding-left:16px}
+.route{font:12px/1.5 "JetBrains Mono",monospace;color:var(--mute);word-break:break-word}
+
+.method{display:grid;grid-template-columns:150px 1fr;margin:0;border-top:1px solid var(--line2)}
+.method dt,.method dd{padding:10px 0;border-bottom:1px solid var(--line);margin:0;font-size:14px}
+.method dt{color:var(--mute)}
+.method dd{color:var(--text)}
+
+footer{margin-top:56px;padding:22px 0 40px;border-top:1px solid var(--line);color:var(--mute);font-size:12.5px}
+footer p{margin:0 0 4px}
+
+@media (max-width:900px){.charts,.notes{grid-template-columns:1fr}.legend{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){.sec-link{display:none}.intro{grid-template-columns:1fr}.intro dt{border-bottom:0;padding-bottom:0}}
+@media (max-width:560px){.wrap{padding:0 16px}.legend{grid-template-columns:1fr}.method{grid-template-columns:1fr}.method dt{border-bottom:0;padding-bottom:0}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="wrap bar">
+  <a class="brand" href="https://komodor.com">Komodor</a><span class="sep">/</span><a class="title" href="#">Neocloud SRE Benchmark</a>
+  <div class="links">
+    <a class="sec-link" href="#leaderboard">Leaderboard</a><a class="sec-link" href="#charts">Cost vs. time</a><a class="sec-link" href="#findings">Findings</a><a class="sec-link" href="#details">Details</a><a class="sec-link" href="#method">Method</a>
+    <a href="https://github.com/komodorio/neocloud-sre-benchmark">GitHub</a>
+  </div>
+  <button class="theme" id="theme" type="button" aria-label="Switch between light and dark mode" title="Light / dark">
+    <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </button>
+</div></nav>
+
+<header><div class="wrap">
+  <h1>Kimi K3 Inference Provider Benchmark</h1>
+  <p class="desc"><a href="https://komodor.com">Komodor</a> builds the modern agent runtime, Evaluation Factory and AI SRE for production AI agents. We use the Evaluation Factory to test and improve our own agents and our customers' agents. This report uses it to answer two questions: can an open-weight model replace a closed one for an AI SRE agent, and does it matter which provider serves it?</p>
+  <dl class="intro">
+    <dt>Starting point</dt>
+    <dd>An AI SRE agent, Claude Code, running on a closed model, Claude Sonnet 5. That is our baseline: 45.1% of incidents fixed end to end on <a href="https://github.com/SREGym/SREGym">SREGym</a>-Lite, a public benchmark of 17 broken Kubernetes clusters, the same as its published leaderboard score.</dd>
+    <dt>The switch</dt>
+    <dd>We swapped the model for Kimi K3, an open-weight model, and kept everything else. Open weights can be served by many providers at about the same list price, so we ran Kimi K3 through six of them: AWS Bedrock, Baseten, Fireworks, Modal, Nebius and Together AI.</dd>
+    <dt>Why</dt>
+    <dd>An open model is only worth switching to if it is good enough and the provider behind it is cheap, fast and reliable. A price sheet answers none of that, so we measured success rate, cost and speed on real incidents, for each provider, against the baseline.</dd>
+    <dt>How</dt>
+    <dd>Each provider got 51 runs: 17 incidents, 3 runs each. Every run starts a fresh Kubernetes cluster, injects a fault into the app running on it, and gives the agent 30 minutes to find the root cause and fix it. SREGym grades each run. Agent version, prompt, tools and grading are identical for every Kimi K3 provider; only the provider changes. <a href="#method">Full method</a></dd>
+  </dl>
+  <p class="updated" id="updated"></p>
+</div></header>
+
+<section id="leaderboard"><div class="wrap">
+  <h2>Leaderboard</h2>
+  <p class="sub">Sorted by E2E success. Click a column header to re-sort. <span class="key good">Green</span> is better and <span class="key bad">red</span> is worse within each column; bold marks the best Kimi K3 provider.</p>
+  <div class="tw"><table class="data" id="main"></table></div>
+  <dl class="legend">
+    <div><dt>E2E success</dt> <dd>end-to-end: share of runs where the agent found the root cause and fixed the cluster</dd></div>
+    <div><dt>Cost / run</dt> <dd>agent and judge tokens for one run, at list price</dd></div>
+    <div><dt>Session time</dt> <dd>time the agent worked on one run (excludes cluster setup and grading)</dd></div>
+    <div><dt>LLM call, TTFT</dt> <dd>time for one model call to finish, and to its first token (TTFT)</dd></div>
+    <div><dt>Quantization</dt> <dd>serving precision the provider reports for Kimi K3 (hover for the source)</dd></div>
+    <div><dt>Tokens / run</dt> <dd>prompt tokens (cached or not) plus output tokens billed</dd></div>
+    <div><dt>Baseline</dt> <dd>Claude Sonnet 5, the closed model we start from; same harness and incidents, stock Claude Code settings</dd></div>
+    <div><dt>p50, p95</dt> <dd>median, 95th percentile</dd></div>
+  </dl>
+</div></section>
+
+<section id="charts"><div class="wrap">
+  <h2>Cost vs. session time</h2>
+  <p class="sub">One point per provider; the green corner is cheaper and faster. Labels show E2E success. Grey is the Claude Sonnet 5 baseline.</p>
+  <div class="card"><div id="sc"></div></div>
+  <div class="charts">
+    <div class="card"><div class="ct">E2E success</div><div class="cs">% of 51 runs, with 95% confidence interval · higher is better</div><div id="ch-e2e"></div></div>
+    <div class="card"><div class="ct">Cost per run</div><div class="cs">USD · lower is better</div><div id="ch-cost"></div></div>
+    <div class="card"><div class="ct">Session time</div><div class="cs">Median minutes per run · lower is better</div><div id="ch-time"></div></div>
+  </div>
+</div></section>
+
+<section id="findings"><div class="wrap">
+  <h2>Findings</h2>
+  <ul class="findings" id="find"></ul>
+  <p class="note" id="find-sub"></p>
+</div></section>
+
+<section id="details"><div class="wrap">
+  <h2>Detailed results</h2>
+  <p class="sub">All tables are sortable.</p>
+  <div class="seg tabs" role="tablist" id="tabs"></div>
+  <div id="panes"></div>
+</div></section>
+
+<section id="method"><div class="wrap">
+  <h2>Method</h2>
+  <p class="sub">Full details and the evidence for each choice: <a href="https://github.com/komodorio/neocloud-sre-benchmark/blob/main/METHOD.md">METHOD.md</a>.</p>
+  <dl class="method">
+    <dt>Run on</dt><dd>The <a href="https://komodor.com">Komodor</a> Evaluation Factory, part of KAOP (Komodor Agentic Operations Platform): the system we use to evaluate and improve our own AI SRE agents and our customers' agents.</dd>
+    <dt>Benchmark</dt><dd>SREGym 1.1, SREGym-Lite cohort: 17 incidents, each a production-style fault injected into a live microservice app on a fresh Kubernetes cluster. 3 runs per incident, 51 runs per provider, as on the public leaderboard.</dd>
+    <dt>Agent</dt><dd>SREGym's stock Claude Code agent, CLI pinned to 2.1.302, with a 30-minute limit per run. Same prompt and tools for every Kimi K3 provider; the Sonnet 5 baseline kept stock Claude Code settings.</dd>
+    <dt>Isolation</dt><dd>One Kubernetes pod per run, on its own on-demand node, with a fresh kind (Kubernetes-in-Docker) cluster inside.</dd>
+    <dt>Routing</dt><dd>A LiteLLM proxy in each pod sends the agent's calls to the provider's native Chat Completions API and logs every call: latency, time to first token, tokens, cache hits.</dd>
+    <dt>Held constant</dt><dd>Sampling and reasoning settings left at model defaults (providers translate them differently, so none are sent); the model's earlier reasoning passed back every turn; Claude Code's per-turn token counter turned off so prompt caching works; the benchmark's own 9-tool list.</dd>
+    <dt>Grading</dt><dd>SREGym's own. The LLM judge grades the diagnosis; by default it is the agent's model, so each provider's Kimi K3 runs are judged by Kimi K3 on that same provider. The oracle checks that the live cluster is fixed and involves no model. E2E success means both passed. Infrastructure failures are re-run (up to 3 times); agent timeouts count as failures.</dd>
+    <dt>Cost</dt><dd>Tokens each provider reported for every call (agent and judge) × its published list price. Checked against the bills of Nebius, Baseten, Together AI and AWS (for an earlier batch of Bedrock runs): our totals came out 4–10% below what they charged. Fireworks was not checked.</dd>
+    <dt>Baseline</dt><dd>Claude Sonnet 5 on AWS Bedrock, on the same harness and incidents with stock Claude Code settings (token counter on, all 21 tools, judged by Sonnet 5), scored 45.1% E2E success, matching its published SREGym leaderboard result.</dd>
+  </dl>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Updated <span id="gen"></span> · All numbers: <a href="data.json">data.json</a> · Prices and sources: <a href="https://github.com/komodorio/neocloud-sre-benchmark/blob/main/pricing.json">pricing.json</a> · Run on the <a href="https://komodor.com">Komodor</a> Evaluation Factory</p>
+  <p>Provider names identify the services measured; no provider reviewed these results.</p>
+</div></footer>
+
+<script>
+const D={"generated": "2026-10-20 07:51 UTC", "rows": [{"config": "claude-sonnet-5", "name": "Claude Sonnet 5 \u00b7 Bedrock", "quant": "-", "baseline": true, "graded": 51, "diag": 58.8235294117647, "mit": 64.70588235294117, "e2e": 45.09803921568628, "e2e_k": 23, "e2e_ci95": [32.267305011132244, 58.61552845835077], "ttd": 315.8646620362997, "ttm": 399.751721834143, "tokens": 2967499.1458333335, "cache_hit_pct": 98.08798590731608, "call_latency_p50": 4.539996862411499, "call_latency_p95": 24.204505920410156, "ttft_p50": 0.00019407272338867188, "output_tps_p50": 102.11847391213666, "cost_per_run": 1.2151796498039216, "cost_total": 61.974162140000004, "call_errors": 0, "reruns": 10, "absorbed_429_pct": 0.0, "agent_min_mean": 6.466430208333334, "agent_min_median": 4.362683333333333, "input_tokens_per_run": 3272692.0392156863, "output_tokens_per_run": 30119.392156862745, "rate_limited_reruns": 0, "incomplete_after_reruns": 3, "per_problem": {"cronjob_sidecar_blocks_completion_hotel_reservation/a1": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a2": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a3": false, "duplicate_pvc_mounts_social_network/a1": false, "duplicate_pvc_mounts_social_network/a2": false, "duplicate_pvc_mounts_social_network/a3": false, "edge_request_filter_cpu_saturation/a1": true, "edge_request_filter_cpu_saturation/a2": true, "edge_request_filter_cpu_saturation/a3": false, "env_variable_shadowing_astronomy_shop/a1": true, "env_variable_shadowing_astronomy_shop/a2": true, "env_variable_shadowing_astronomy_shop/a3": true, "finalizer_deadlock_controller_hotel_reservation/a1": true, "finalizer_deadlock_controller_hotel_reservation/a2": true, "finalizer_deadlock_controller_hotel_reservation/a3": true, "internal_traffic_policy_local_astronomy_shop/a1": true, "internal_traffic_policy_local_astronomy_shop/a2": true, "internal_traffic_policy_local_astronomy_shop/a3": false, "kafka_poison_pill_hol_block/a1": true, "kafka_poison_pill_hol_block/a2": true, "kafka_poison_pill_hol_block/a3": true, "mutating_webhook_resource_limits_social_network/a1": false, "mutating_webhook_resource_limits_social_network/a2": false, "mutating_webhook_resource_limits_social_network/a3": false, "namespace_memory_limit/a1": false, "namespace_memory_limit/a2": false, "namespace_memory_limit/a3": false, "network_policy_block/a1": false, "network_policy_block/a2": false, "network_policy_block/a3": true, "rolling_update_misconfigured_social_network/a1": false, "rolling_update_misconfigured_social_network/a2": false, "rolling_update_misconfigured_social_network/a3": false, "search_rate_retry_collapse_hotel_reservation/a1": false, "search_rate_retry_collapse_hotel_reservation/a2": false, "search_rate_retry_collapse_hotel_reservation/a3": false, "secret_rotation_stale_env_credentials_astronomy_shop/a1": true, "secret_rotation_stale_env_credentials_astronomy_shop/a2": false, "secret_rotation_stale_env_credentials_astronomy_shop/a3": true, "service_dns_resolution_failure_social_network/a1": true, "service_dns_resolution_failure_social_network/a2": false, "service_dns_resolution_failure_social_network/a3": true, "service_wrong_pod_selection_hotel_reservation/a1": true, "service_wrong_pod_selection_hotel_reservation/a2": true, "service_wrong_pod_selection_hotel_reservation/a3": false, "unschedulable_incorrect_port_assignment/a1": true, "unschedulable_incorrect_port_assignment/a2": false, "unschedulable_incorrect_port_assignment/a3": false, "valkey_auth_disruption/a1": false, "valkey_auth_disruption/a2": false, "valkey_auth_disruption/a3": false}, "price": {"input": 2.2, "output": 11.0, "cache_read": 0.22, "cache_write": 2.75, "source": "AWS Price List API, AmazonBedrockFoundationModels us-east-1, Claude Sonnet 5 *_standard (us. inference profile); cache write = 5-minute TTL, which Claude Code used (ephemeral_5m)"}, "spend_total": null, "notes": {"route": "AWS Bedrock \u00b7 us.anthropic.claude-sonnet-5", "adapt": ["Same harness and incidents as the Kimi K3 rows, with stock Claude Code settings: token counter on, all 21 tools, judged by Sonnet 5."], "insight": "Scored 45.1% E2E success, the same as the public SREGym leaderboard result for Claude Code + Claude Sonnet 5, which is consistent with a correctly working harness."}, "vendor": {"limit": "", "source": "", "parallel": 6, "serving": "Serverless, us. inference profile"}}, {"config": "kimi-k3-fireworks", "name": "Fireworks", "quant": "FP8", "baseline": false, "graded": 51, "diag": 82.3529411764706, "mit": 76.47058823529412, "e2e": 66.66666666666667, "e2e_k": 34, "e2e_ci95": [52.96812196648057, 78.03024423727717], "ttd": 439.64602572917937, "ttm": 578.5747164773941, "tokens": 914324.5102040817, "cache_hit_pct": 96.09327885354828, "call_latency_p50": 11.223735094070435, "call_latency_p95": 37.76617217063904, "ttft_p50": 3.3572638034820557, "output_tps_p50": 30.38841133505312, "cost_per_run": 0.6595762352941177, "cost_total": 33.638388, "call_errors": 0, "reruns": 6, "absorbed_429_pct": 0.0, "agent_min_mean": 9.588308503401361, "agent_min_median": 7.467333333333333, "input_tokens_per_run": 966610.8431372549, "output_tokens_per_run": 17489.92156862745, "rate_limited_reruns": 0, "incomplete_after_reruns": 1, "per_problem": {"cronjob_sidecar_blocks_completion_hotel_reservation/a1": false, "cronjob_sidecar_blocks_completion_hotel_reservation/a2": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a3": false, "duplicate_pvc_mounts_social_network/a1": false, "duplicate_pvc_mounts_social_network/a2": true, "duplicate_pvc_mounts_social_network/a3": false, "edge_request_filter_cpu_saturation/a1": true, "edge_request_filter_cpu_saturation/a2": true, "edge_request_filter_cpu_saturation/a3": true, "env_variable_shadowing_astronomy_shop/a1": true, "env_variable_shadowing_astronomy_shop/a2": true, "env_variable_shadowing_astronomy_shop/a3": true, "finalizer_deadlock_controller_hotel_reservation/a1": true, "finalizer_deadlock_controller_hotel_reservation/a2": true, "finalizer_deadlock_controller_hotel_reservation/a3": true, "internal_traffic_policy_local_astronomy_shop/a1": true, "internal_traffic_policy_local_astronomy_shop/a2": true, "internal_traffic_policy_local_astronomy_shop/a3": true, "kafka_poison_pill_hol_block/a1": true, "kafka_poison_pill_hol_block/a2": true, "kafka_poison_pill_hol_block/a3": false, "mutating_webhook_resource_limits_social_network/a1": true, "mutating_webhook_resource_limits_social_network/a2": false, "mutating_webhook_resource_limits_social_network/a3": false, "namespace_memory_limit/a1": true, "namespace_memory_limit/a2": false, "namespace_memory_limit/a3": false, "network_policy_block/a1": true, "network_policy_block/a2": true, "network_policy_block/a3": true, "rolling_update_misconfigured_social_network/a1": false, "rolling_update_misconfigured_social_network/a2": false, "rolling_update_misconfigured_social_network/a3": false, "search_rate_retry_collapse_hotel_reservation/a1": false, "search_rate_retry_collapse_hotel_reservation/a2": false, "search_rate_retry_collapse_hotel_reservation/a3": false, "secret_rotation_stale_env_credentials_astronomy_shop/a1": true, "secret_rotation_stale_env_credentials_astronomy_shop/a2": true, "secret_rotation_stale_env_credentials_astronomy_shop/a3": true, "service_dns_resolution_failure_social_network/a1": true, "service_dns_resolution_failure_social_network/a2": true, "service_dns_resolution_failure_social_network/a3": true, "service_wrong_pod_selection_hotel_reservation/a1": false, "service_wrong_pod_selection_hotel_reservation/a2": true, "service_wrong_pod_selection_hotel_reservation/a3": true, "unschedulable_incorrect_port_assignment/a1": false, "unschedulable_incorrect_port_assignment/a2": true, "unschedulable_incorrect_port_assignment/a3": true, "valkey_auth_disruption/a1": true, "valkey_auth_disruption/a2": true, "valkey_auth_disruption/a3": true}, "price": {"input": 3.0, "output": 15.0, "cache_read": 0.3, "quantization": "FP8 (Fireworks model API defaultPrecision)", "source": "fireworks.ai/models/fireworks/kimi-k3 serverless pricing, fetched 2026-10-18"}, "spend_total": 68.8171665000001, "notes": {"route": "api.fireworks.ai/inference/v1 \u00b7 accounts/fireworks/models/kimi-k3", "adapt": ["Called through a Chat Completions route that passes the model's earlier reasoning back each turn, as Kimi K3 requires.", "6 agents in parallel, no rate-limited calls."], "insight": "Among the cheapest per run, because cached tokens cost $0.30 per 1M. Also the slowest output speed, so the agent takes longest to fix each incident."}, "vendor": {"limit": "7.2M prompt (1.8M uncached) + 72K output tokens / min", "source": "API response headers", "parallel": 6, "serving": "Serverless", "quant_source": "model API (defaultPrecision)"}}, {"config": "kimi-k3-nebius", "name": "Nebius", "quant": "FP4", "baseline": false, "graded": 51, "diag": 76.47058823529412, "mit": 78.43137254901961, "e2e": 66.66666666666667, "e2e_k": 34, "e2e_ci95": [52.96812196648057, 78.03024423727717], "ttd": 200.91037819899765, "ttm": 325.2678188529669, "tokens": 1466519.0588235294, "cache_hit_pct": 97.24507281328003, "call_latency_p50": 3.112420082092285, "call_latency_p95": 13.379302978515625, "ttft_p50": 0.8256950378417969, "output_tps_p50": 114.65909469437139, "cost_per_run": 4.7186, "cost_total": 240.6486, "call_errors": 0, "reruns": 1, "absorbed_429_pct": 0.0, "agent_min_mean": 5.123900980392157, "agent_min_median": 2.9665166666666667, "input_tokens_per_run": 1463796.7647058824, "output_tokens_per_run": 21813.980392156864, "rate_limited_reruns": 0, "incomplete_after_reruns": 0, "per_problem": {"cronjob_sidecar_blocks_completion_hotel_reservation/a1": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a2": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a3": true, "duplicate_pvc_mounts_social_network/a1": false, "duplicate_pvc_mounts_social_network/a2": false, "duplicate_pvc_mounts_social_network/a3": false, "edge_request_filter_cpu_saturation/a1": true, "edge_request_filter_cpu_saturation/a2": true, "edge_request_filter_cpu_saturation/a3": true, "env_variable_shadowing_astronomy_shop/a1": true, "env_variable_shadowing_astronomy_shop/a2": true, "env_variable_shadowing_astronomy_shop/a3": false, "finalizer_deadlock_controller_hotel_reservation/a1": false, "finalizer_deadlock_controller_hotel_reservation/a2": true, "finalizer_deadlock_controller_hotel_reservation/a3": true, "internal_traffic_policy_local_astronomy_shop/a1": true, "internal_traffic_policy_local_astronomy_shop/a2": true, "internal_traffic_policy_local_astronomy_shop/a3": true, "kafka_poison_pill_hol_block/a1": true, "kafka_poison_pill_hol_block/a2": false, "kafka_poison_pill_hol_block/a3": false, "mutating_webhook_resource_limits_social_network/a1": true, "mutating_webhook_resource_limits_social_network/a2": false, "mutating_webhook_resource_limits_social_network/a3": false, "namespace_memory_limit/a1": false, "namespace_memory_limit/a2": true, "namespace_memory_limit/a3": true, "network_policy_block/a1": true, "network_policy_block/a2": true, "network_policy_block/a3": true, "rolling_update_misconfigured_social_network/a1": false, "rolling_update_misconfigured_social_network/a2": false, "rolling_update_misconfigured_social_network/a3": false, "search_rate_retry_collapse_hotel_reservation/a1": false, "search_rate_retry_collapse_hotel_reservation/a2": false, "search_rate_retry_collapse_hotel_reservation/a3": false, "secret_rotation_stale_env_credentials_astronomy_shop/a1": true, "secret_rotation_stale_env_credentials_astronomy_shop/a2": true, "secret_rotation_stale_env_credentials_astronomy_shop/a3": true, "service_dns_resolution_failure_social_network/a1": true, "service_dns_resolution_failure_social_network/a2": true, "service_dns_resolution_failure_social_network/a3": true, "service_wrong_pod_selection_hotel_reservation/a1": true, "service_wrong_pod_selection_hotel_reservation/a2": true, "service_wrong_pod_selection_hotel_reservation/a3": true, "unschedulable_incorrect_port_assignment/a1": true, "unschedulable_incorrect_port_assignment/a2": false, "unschedulable_incorrect_port_assignment/a3": true, "valkey_auth_disruption/a1": true, "valkey_auth_disruption/a2": true, "valkey_auth_disruption/a3": true}, "price": {"input": 3.0, "output": 15.0, "cache_read": null, "quantization": "fp4", "region": "eu-west2 (FR)", "source": "GET api.studio.nebius.com/v1/models?verbose=true pricing"}, "spend_total": 300.4909560000002, "notes": {"route": "api.studio.nebius.com/v1 \u00b7 moonshotai/Kimi-K3 \u00b7 FP4", "adapt": ["Native Chat Completions route; passes the model's earlier reasoning back each turn.", "4 agents in parallel, no rate-limited calls."], "insight": "Fastest provider: lowest time to first token, highest output speed and shortest time to fix. 97% of prompt tokens were cache hits, but Nebius bills cached tokens at the full $3 input price, so a run costs about 7\u00d7 as much as on the cheapest provider."}, "vendor": {"limit": "2M tokens + 1,000 requests / min", "source": "API response headers", "parallel": 4, "serving": "Serverless", "quant_source": "models API"}}, {"config": "kimi-k3-baseten", "name": "Baseten", "quant": "FP8", "baseline": false, "graded": 51, "diag": 74.50980392156863, "mit": 72.54901960784314, "e2e": 62.745098039215684, "e2e_k": 32, "e2e_ci95": [49.02496270033425, 74.6796702790099], "ttd": 390.11051750183105, "ttm": 491.11193025813384, "tokens": 1045202.5306122449, "cache_hit_pct": 94.91888421468234, "call_latency_p50": 6.161760091781616, "call_latency_p95": 23.286400079727173, "ttft_p50": 2.6035900115966797, "output_tps_p50": 56.82234924307018, "cost_per_run": 0.7378318823529412, "cost_total": 37.629426, "call_errors": 87, "reruns": 3, "absorbed_429_pct": 4.5288912024986985, "agent_min_mean": 8.172923, "agent_min_median": 5.718391666666667, "input_tokens_per_run": 1053385.7647058824, "output_tokens_per_run": 18126.50980392157, "rate_limited_reruns": 20, "incomplete_after_reruns": 0, "per_problem": {"cronjob_sidecar_blocks_completion_hotel_reservation/a1": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a2": false, "cronjob_sidecar_blocks_completion_hotel_reservation/a3": false, "duplicate_pvc_mounts_social_network/a1": false, "duplicate_pvc_mounts_social_network/a2": false, "duplicate_pvc_mounts_social_network/a3": false, "edge_request_filter_cpu_saturation/a1": true, "edge_request_filter_cpu_saturation/a2": true, "edge_request_filter_cpu_saturation/a3": true, "env_variable_shadowing_astronomy_shop/a1": true, "env_variable_shadowing_astronomy_shop/a2": true, "env_variable_shadowing_astronomy_shop/a3": true, "finalizer_deadlock_controller_hotel_reservation/a1": false, "finalizer_deadlock_controller_hotel_reservation/a2": true, "finalizer_deadlock_controller_hotel_reservation/a3": true, "internal_traffic_policy_local_astronomy_shop/a1": true, "internal_traffic_policy_local_astronomy_shop/a2": true, "internal_traffic_policy_local_astronomy_shop/a3": true, "kafka_poison_pill_hol_block/a1": true, "kafka_poison_pill_hol_block/a2": true, "kafka_poison_pill_hol_block/a3": true, "mutating_webhook_resource_limits_social_network/a1": false, "mutating_webhook_resource_limits_social_network/a2": false, "mutating_webhook_resource_limits_social_network/a3": false, "namespace_memory_limit/a1": true, "namespace_memory_limit/a2": true, "namespace_memory_limit/a3": false, "network_policy_block/a1": true, "network_policy_block/a2": true, "network_policy_block/a3": true, "rolling_update_misconfigured_social_network/a1": false, "rolling_update_misconfigured_social_network/a2": false, "rolling_update_misconfigured_social_network/a3": false, "search_rate_retry_collapse_hotel_reservation/a1": false, "search_rate_retry_collapse_hotel_reservation/a2": true, "search_rate_retry_collapse_hotel_reservation/a3": false, "secret_rotation_stale_env_credentials_astronomy_shop/a1": true, "secret_rotation_stale_env_credentials_astronomy_shop/a2": true, "secret_rotation_stale_env_credentials_astronomy_shop/a3": false, "service_dns_resolution_failure_social_network/a1": true, "service_dns_resolution_failure_social_network/a2": true, "service_dns_resolution_failure_social_network/a3": true, "service_wrong_pod_selection_hotel_reservation/a1": true, "service_wrong_pod_selection_hotel_reservation/a2": false, "service_wrong_pod_selection_hotel_reservation/a3": false, "unschedulable_incorrect_port_assignment/a1": false, "unschedulable_incorrect_port_assignment/a2": true, "unschedulable_incorrect_port_assignment/a3": true, "valkey_auth_disruption/a1": true, "valkey_auth_disruption/a2": true, "valkey_auth_disruption/a3": true}, "price": {"input": 3.0, "output": 15.0, "cache_read": 0.3, "quantization": "fp8", "source": "GET inference.baseten.co/v1/models pricing"}, "spend_total": 60.25782179999994, "notes": {"route": "inference.baseten.co/v1 \u00b7 moonshotai/Kimi-K3 \u00b7 FP8", "adapt": ["Default account tier is capped at 100,000 tokens and 15 requests per rate-limit window. One agent re-sending a 20\u201340K-token transcript every turn nearly fills it, so it runs one agent at a time. Baseten raises the limit on request."], "insight": "Mid-range on speed and cost. The main operational limit is the account rate limit, which allows one agent at a time."}, "vendor": {"limit": "100K tokens + 15 requests / window", "source": "API response headers", "parallel": 1, "serving": "Serverless", "quant_source": "models API"}}, {"config": "kimi-k3-aws", "name": "AWS Bedrock", "quant": "not disclosed", "baseline": false, "graded": 51, "diag": 82.3529411764706, "mit": 76.47058823529412, "e2e": 68.62745098039215, "e2e_k": 35, "e2e_ci95": [54.97274248374967, 79.67249033221485], "ttd": 225.12138114723504, "ttm": 330.617929725086, "tokens": 1218682.9803921569, "cache_hit_pct": 95.73861104202497, "call_latency_p50": 5.126765966415405, "call_latency_p95": 14.02924919128418, "ttft_p50": 2.7357020378112793, "output_tps_p50": 72.80409561211819, "cost_per_run": 0.8723564688235295, "cost_total": 44.49017991, "call_errors": 0, "reruns": 1, "absorbed_429_pct": 0.0, "agent_min_mean": 5.437029738562091, "agent_min_median": 3.9852333333333334, "input_tokens_per_run": 1211015.705882353, "output_tokens_per_run": 19131.78431372549, "rate_limited_reruns": 0, "incomplete_after_reruns": 0, "per_problem": {"cronjob_sidecar_blocks_completion_hotel_reservation/a1": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a2": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a3": false, "duplicate_pvc_mounts_social_network/a1": true, "duplicate_pvc_mounts_social_network/a2": false, "duplicate_pvc_mounts_social_network/a3": true, "edge_request_filter_cpu_saturation/a1": true, "edge_request_filter_cpu_saturation/a2": true, "edge_request_filter_cpu_saturation/a3": true, "env_variable_shadowing_astronomy_shop/a1": true, "env_variable_shadowing_astronomy_shop/a2": true, "env_variable_shadowing_astronomy_shop/a3": true, "finalizer_deadlock_controller_hotel_reservation/a1": false, "finalizer_deadlock_controller_hotel_reservation/a2": true, "finalizer_deadlock_controller_hotel_reservation/a3": false, "internal_traffic_policy_local_astronomy_shop/a1": true, "internal_traffic_policy_local_astronomy_shop/a2": true, "internal_traffic_policy_local_astronomy_shop/a3": true, "kafka_poison_pill_hol_block/a1": true, "kafka_poison_pill_hol_block/a2": false, "kafka_poison_pill_hol_block/a3": true, "mutating_webhook_resource_limits_social_network/a1": false, "mutating_webhook_resource_limits_social_network/a2": false, "mutating_webhook_resource_limits_social_network/a3": false, "namespace_memory_limit/a1": true, "namespace_memory_limit/a2": true, "namespace_memory_limit/a3": false, "network_policy_block/a1": false, "network_policy_block/a2": true, "network_policy_block/a3": true, "rolling_update_misconfigured_social_network/a1": false, "rolling_update_misconfigured_social_network/a2": false, "rolling_update_misconfigured_social_network/a3": false, "search_rate_retry_collapse_hotel_reservation/a1": true, "search_rate_retry_collapse_hotel_reservation/a2": false, "search_rate_retry_collapse_hotel_reservation/a3": false, "secret_rotation_stale_env_credentials_astronomy_shop/a1": true, "secret_rotation_stale_env_credentials_astronomy_shop/a2": true, "secret_rotation_stale_env_credentials_astronomy_shop/a3": true, "service_dns_resolution_failure_social_network/a1": true, "service_dns_resolution_failure_social_network/a2": true, "service_dns_resolution_failure_social_network/a3": true, "service_wrong_pod_selection_hotel_reservation/a1": true, "service_wrong_pod_selection_hotel_reservation/a2": false, "service_wrong_pod_selection_hotel_reservation/a3": true, "unschedulable_incorrect_port_assignment/a1": true, "unschedulable_incorrect_port_assignment/a2": true, "unschedulable_incorrect_port_assignment/a3": true, "valkey_auth_disruption/a1": true, "valkey_auth_disruption/a2": true, "valkey_auth_disruption/a3": true}, "price": {"input": 3.3, "output": 16.5, "cache_read": 0.33, "cache_write": 4.125, "source": "AWS Price List API, AmazonBedrock us-east-1, moonshotai.kimi-k3 *-standard (us. inference profile)"}, "spend_total": 127.90252447500022, "notes": {"route": "Bedrock OpenAI-compatible endpoint (/openai/v1) \u00b7 us.moonshotai.kimi-k3", "adapt": ["Called through Bedrock's OpenAI-compatible endpoint, which passes the model's earlier reasoning back each turn; LiteLLM's Converse route did not.", "Bedrock rejects the temperature parameter for Kimi K3. Sampling parameters are left at model defaults on every provider."], "insight": "Best balance of speed and cost. On the us. inference profile it is priced 10% above the others ($3.30 / $16.50; the global. profile matches $3 / $15). It is the only provider that also charges for cache writes."}, "vendor": {"limit": "20M tokens / min (us. cross-region)", "source": "AWS service quota", "parallel": 6, "serving": "Serverless, us. inference profile", "quant_source": "not in AWS model API"}}, {"config": "kimi-k3-together", "name": "Together AI", "quant": "FP4", "baseline": false, "graded": 51, "diag": 74.50980392156863, "mit": 74.50980392156863, "e2e": 58.8235294117647, "e2e_k": 30, "e2e_ci95": [45.16509274741746, 71.24580700751311], "ttd": 374.6069306392296, "ttm": 542.2077601890938, "tokens": 943887.0392156863, "cache_hit_pct": 95.52929647394745, "call_latency_p50": 9.108674049377441, "call_latency_p95": 34.63948607444763, "ttft_p50": 2.3988919258117676, "output_tps_p50": 36.02073495426545, "cost_per_run": 0.6469080705882353, "cost_total": 32.9923116, "call_errors": 538, "reruns": 2, "absorbed_429_pct": 23.81584772023019, "agent_min_mean": 9.07452843137255, "agent_min_median": 7.314466666666666, "input_tokens_per_run": 939984.5882352941, "output_tokens_per_run": 16391.764705882353, "rate_limited_reruns": 12, "incomplete_after_reruns": 0, "per_problem": {"cronjob_sidecar_blocks_completion_hotel_reservation/a1": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a2": false, "cronjob_sidecar_blocks_completion_hotel_reservation/a3": true, "duplicate_pvc_mounts_social_network/a1": false, "duplicate_pvc_mounts_social_network/a2": false, "duplicate_pvc_mounts_social_network/a3": false, "edge_request_filter_cpu_saturation/a1": true, "edge_request_filter_cpu_saturation/a2": true, "edge_request_filter_cpu_saturation/a3": true, "env_variable_shadowing_astronomy_shop/a1": true, "env_variable_shadowing_astronomy_shop/a2": true, "env_variable_shadowing_astronomy_shop/a3": true, "finalizer_deadlock_controller_hotel_reservation/a1": true, "finalizer_deadlock_controller_hotel_reservation/a2": true, "finalizer_deadlock_controller_hotel_reservation/a3": true, "internal_traffic_policy_local_astronomy_shop/a1": true, "internal_traffic_policy_local_astronomy_shop/a2": false, "internal_traffic_policy_local_astronomy_shop/a3": true, "kafka_poison_pill_hol_block/a1": true, "kafka_poison_pill_hol_block/a2": true, "kafka_poison_pill_hol_block/a3": true, "mutating_webhook_resource_limits_social_network/a1": false, "mutating_webhook_resource_limits_social_network/a2": false, "mutating_webhook_resource_limits_social_network/a3": false, "namespace_memory_limit/a1": true, "namespace_memory_limit/a2": false, "namespace_memory_limit/a3": false, "network_policy_block/a1": true, "network_policy_block/a2": true, "network_policy_block/a3": true, "rolling_update_misconfigured_social_network/a1": false, "rolling_update_misconfigured_social_network/a2": false, "rolling_update_misconfigured_social_network/a3": false, "search_rate_retry_collapse_hotel_reservation/a1": false, "search_rate_retry_collapse_hotel_reservation/a2": false, "search_rate_retry_collapse_hotel_reservation/a3": false, "secret_rotation_stale_env_credentials_astronomy_shop/a1": false, "secret_rotation_stale_env_credentials_astronomy_shop/a2": true, "secret_rotation_stale_env_credentials_astronomy_shop/a3": true, "service_dns_resolution_failure_social_network/a1": true, "service_dns_resolution_failure_social_network/a2": true, "service_dns_resolution_failure_social_network/a3": true, "service_wrong_pod_selection_hotel_reservation/a1": false, "service_wrong_pod_selection_hotel_reservation/a2": true, "service_wrong_pod_selection_hotel_reservation/a3": true, "unschedulable_incorrect_port_assignment/a1": false, "unschedulable_incorrect_port_assignment/a2": true, "unschedulable_incorrect_port_assignment/a3": false, "valkey_auth_disruption/a1": true, "valkey_auth_disruption/a2": true, "valkey_auth_disruption/a3": false}, "price": {"input": 3.0, "output": 15.0, "cache_read": 0.3, "source": "GET api.together.xyz/v1/models pricing", "quantization": "FP4 (Together model page)"}, "spend_total": 38.26798559999996, "notes": {"route": "api.together.xyz/v1 \u00b7 moonshotai/Kimi-K3", "adapt": ["At 2 agents in parallel on our account, about a quarter of calls were rate-limited (HTTP 429) and retried, which slowed the agent.", "Account credit is checked against each request's full max_tokens (32K for Claude Code), so the balance needs headroom beyond actual spend."], "insight": "Same list price as Fireworks and about the same cost per run. Frequent rate limiting makes each run longer."}, "vendor": {"limit": "Dynamic, follows live capacity", "source": "Together docs; no limit headers", "parallel": 2, "serving": "Serverless", "quant_source": "model page"}}, {"config": "kimi-k3-modal", "name": "Modal", "quant": "not disclosed", "baseline": false, "graded": 51, "diag": 88.23529411764706, "mit": 72.54901960784314, "e2e": 66.66666666666667, "e2e_k": 34, "e2e_ci95": [52.96812196648057, 78.03024423727717], "ttd": 283.8722552318199, "ttm": 439.5372721821654, "tokens": 1311422.96, "cache_hit_pct": 96.65922886267677, "call_latency_p50": 5.842687129974365, "call_latency_p95": 21.02467107772827, "ttft_p50": 2.2892889976501465, "output_tps_p50": 61.887016941306754, "cost_per_run": 0.8429301294117647, "cost_total": 42.9894366, "call_errors": 0, "reruns": 14, "absorbed_429_pct": 0.0, "agent_min_mean": 7.058421666666667, "agent_min_median": 4.93545, "input_tokens_per_run": 1316521.0980392157, "output_tokens_per_run": 21605.56862745098, "rate_limited_reruns": 1, "incomplete_after_reruns": 0, "per_problem": {"cronjob_sidecar_blocks_completion_hotel_reservation/a1": false, "cronjob_sidecar_blocks_completion_hotel_reservation/a2": true, "cronjob_sidecar_blocks_completion_hotel_reservation/a3": true, "duplicate_pvc_mounts_social_network/a1": true, "duplicate_pvc_mounts_social_network/a2": false, "duplicate_pvc_mounts_social_network/a3": true, "edge_request_filter_cpu_saturation/a1": true, "edge_request_filter_cpu_saturation/a2": true, "edge_request_filter_cpu_saturation/a3": true, "env_variable_shadowing_astronomy_shop/a1": true, "env_variable_shadowing_astronomy_shop/a2": true, "env_variable_shadowing_astronomy_shop/a3": true, "finalizer_deadlock_controller_hotel_reservation/a1": true, "finalizer_deadlock_controller_hotel_reservation/a2": true, "finalizer_deadlock_controller_hotel_reservation/a3": true, "internal_traffic_policy_local_astronomy_shop/a1": true, "internal_traffic_policy_local_astronomy_shop/a2": true, "internal_traffic_policy_local_astronomy_shop/a3": false, "kafka_poison_pill_hol_block/a1": true, "kafka_poison_pill_hol_block/a2": false, "kafka_poison_pill_hol_block/a3": false, "mutating_webhook_resource_limits_social_network/a1": false, "mutating_webhook_resource_limits_social_network/a2": true, "mutating_webhook_resource_limits_social_network/a3": false, "namespace_memory_limit/a1": false, "namespace_memory_limit/a2": false, "namespace_memory_limit/a3": true, "network_policy_block/a1": true, "network_policy_block/a2": true, "network_policy_block/a3": true, "rolling_update_misconfigured_social_network/a1": false, "rolling_update_misconfigured_social_network/a2": false, "rolling_update_misconfigured_social_network/a3": false, "search_rate_retry_collapse_hotel_reservation/a1": false, "search_rate_retry_collapse_hotel_reservation/a2": false, "search_rate_retry_collapse_hotel_reservation/a3": false, "secret_rotation_stale_env_credentials_astronomy_shop/a1": true, "secret_rotation_stale_env_credentials_astronomy_shop/a2": true, "secret_rotation_stale_env_credentials_astronomy_shop/a3": false, "service_dns_resolution_failure_social_network/a1": true, "service_dns_resolution_failure_social_network/a2": true, "service_dns_resolution_failure_social_network/a3": true, "service_wrong_pod_selection_hotel_reservation/a1": true, "service_wrong_pod_selection_hotel_reservation/a2": true, "service_wrong_pod_selection_hotel_reservation/a3": true, "unschedulable_incorrect_port_assignment/a1": true, "unschedulable_incorrect_port_assignment/a2": true, "unschedulable_incorrect_port_assignment/a3": false, "valkey_auth_disruption/a1": true, "valkey_auth_disruption/a2": true, "valkey_auth_disruption/a3": true}, "price": {"input": 3.0, "output": 15.0, "cache_read": 0.3, "source": "modal.com/endpoints create page, Shared Endpoint pricing for moonshotai/Kimi-K3, fetched 2026-10-19"}, "spend_total": 51.99096479999992, "notes": {"route": "Modal Shared Endpoint (us-west) \u00b7 moonshotai/Kimi-K3", "adapt": ["Serverless per-token billing; the endpoint is created once in the workspace and called with a workspace proxy token.", "Each run sends its own Modal-Routing-Affinity-Key header, as Modal's docs ask for agent loops, so a session stays on one warm prompt cache."], "insight": "Under parallel load the shared endpoint ended some streamed responses early (finish_reason \"abort\"), which cut off the agent's tool call; 13 runs stopped early this way and were re-run, and all finished within 3 tries."}, "vendor": {"limit": "16 concurrent requests / workspace", "source": "Modal endpoint page", "parallel": 4, "serving": "Shared endpoint, us-west", "quant_source": "not published"}}], "problems": [{"id": "cronjob_sidecar_blocks_completion_hotel_reservation", "category": "Misconfiguration Failure", "app": "hotel-reservation"}, {"id": "duplicate_pvc_mounts_social_network", "category": "Cloud Management System Failure", "app": "social-network"}, {"id": "edge_request_filter_cpu_saturation", "category": "System/Application Software Failure", "app": "astronomy-shop"}, {"id": "env_variable_shadowing_astronomy_shop", "category": "Misconfiguration Failure", "app": "astronomy-shop"}, {"id": "finalizer_deadlock_controller_hotel_reservation", "category": "Security Failure", "app": "hotel-reservation"}, {"id": "internal_traffic_policy_local_astronomy_shop", "category": "Network Failure", "app": "astronomy-shop"}, {"id": "kafka_poison_pill_hol_block", "category": "System/Application Software Failure", "app": "astronomy-shop"}, {"id": "mutating_webhook_resource_limits_social_network", "category": "Misconfiguration Failure", "app": "social-network"}, {"id": "namespace_memory_limit", "category": "Cloud Management System Failure", "app": "hotel-reservation"}, {"id": "network_policy_block", "category": "Network Failure", "app": "hotel-reservation"}, {"id": "rolling_update_misconfigured_social_network", "category": "Misconfiguration Failure", "app": "social-network"}, {"id": "search_rate_retry_collapse_hotel_reservation", "category": "Metastable Failure", "app": "hotel-reservation"}, {"id": "secret_rotation_stale_env_credentials_astronomy_shop", "category": "Security Failure", "app": "astronomy-shop"}, {"id": "service_dns_resolution_failure_social_network", "category": "Network Failure", "app": "social-network"}, {"id": "service_wrong_pod_selection_hotel_reservation", "category": "Misconfiguration Failure", "app": "hotel-reservation"}, {"id": "unschedulable_incorrect_port_assignment", "category": "Multiple Independent Failures", "app": "astronomy-shop"}, {"id": "valkey_auth_disruption", "category": "Security Failure", "app": "astronomy-shop"}], "leaderboard": {"agent": "Claude Code", "model": "Claude Sonnet 5", "diag": 54.9, "mit": 62.7, "e2e": 45.1, "ttd": 308.6, "ttm": 505.2}};
+const $=id=>document.getElementById(id);
+const COLOR={"claude-sonnet-5":"#a1a1aa","kimi-k3-aws":"#f59e0b","kimi-k3-fireworks":"#8b5cf6","kimi-k3-nebius":"#84cc16","kimi-k3-baseten":"#14b8a6","kimi-k3-together":"#3b82f6","kimi-k3-modal":"#ec4899"};
+const N=D.problems.length*3;
+const rows=D.rows.filter(r=>r.graded);
+const base=rows.find(r=>r.baseline);
+const kimi=rows.filter(r=>!r.baseline).sort((a,b)=>(b.e2e??-1)-(a.e2e??-1));
+const done=kimi.filter(r=>r.graded>=N);
+const ordered=[...kimi,...(base?[base]:[])];
+
+const fmt=(v,d=1,pre="",post="")=>v==null||!isFinite(v)?null:pre+Number(v).toFixed(d)+post;
+const dash='<span class="na">–</span>';
+const show=(v,...a)=>fmt(v,...a)??dash;
+const short=r=>r.baseline?"Claude Sonnet 5":r.name;
+const sw=r=>`<i class="sw" style="background:${COLOR[r.config]||"#888"}"></i>`;
+const sess=r=>r.agent_min_median??null;
+const ttft=r=>r.ttft_p50>=0.05?r.ttft_p50:null;
+const tok=r=>r.input_tokens_per_run!=null?r.input_tokens_per_run+(r.output_tokens_per_run||0):null;
+const fmtTok=v=>v==null?null:v>=1e6?(v/1e6).toFixed(2)+"M":Math.round(v/1e3)+"K";
+const sub=r=>r.baseline?"AWS Bedrock":["Kimi K3",r.graded<N?`${r.graded}/${N} runs so far`:""].filter(Boolean).join(" · ");
+const range=(a,d=1,pre="",post="")=>{const lo=Math.min(...a),hi=Math.max(...a);return lo.toFixed(d)===hi.toFixed(d)?pre+lo.toFixed(d)+post:`${pre}${lo.toFixed(d)}–${pre}${hi.toFixed(d)}${post}`};
+const minBy=(a,f)=>{const b=a.filter(r=>f(r)!=null);return b.length?b.reduce((x,y)=>f(y)<f(x)?y:x):null};
+const maxBy=(a,f)=>{const b=a.filter(r=>f(r)!=null);return b.length?b.reduce((x,y)=>f(y)>f(x)?y:x):null};
+const erf=x=>{const t=1/(1+.3275911*Math.abs(x)),y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return x<0?-y:y};
+const pTwo=(k1,n1,k2,n2)=>{const q=(k1+k2)/(n1+n2),se=Math.sqrt(q*(1-q)*(1/n1+1/n2));return se?1-erf(Math.abs(k1/n1-k2/n2)/se/Math.SQRT2):1};
+const fmtP=v=>v<.001?"p < 0.001":`p = ${v<.01?v.toFixed(3):v.toFixed(2)}`;
+const list=a=>a.length<2?a.join(""):a.slice(0,-1).join(", ")+" and "+a.at(-1);
+
+$("gen").textContent=D.generated;
+const stored=()=>{try{return localStorage.getItem("theme")}catch(e){return null}};
+$("theme").onclick=()=>{const t=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=t;try{localStorage.setItem("theme",t)}catch(e){}};
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",e=>{if(!stored())document.documentElement.dataset.theme=e.matches?"dark":"light"});
+$("updated").innerHTML=`Updated ${D.generated} · ${rows.reduce((a,r)=>a+r.graded,0)} graded runs · Claude Code 2.1.302 · <a href="data.json">data.json</a>`;
+/* Sortable tables */
+function table(el,cols,data,key,asc=false,{heat=false}={}){
+  const best={},span={};
+  for(const c of cols)if(c.best){const v=done.map(c.val).filter(x=>x!=null);if(v.length)best[c.key]=c.best==="min"?Math.min(...v):Math.max(...v)}
+  const isBest=(c,r)=>c.key in best&&!r.baseline&&r.graded>=N&&c.val(r)!=null&&Math.abs(c.val(r)-best[c.key])<1e-9;
+  const scale=c=>c.log?v=>Math.log(Math.max(v,1e-9)):v=>v;
+  if(heat)for(const c of cols)if(c.good){const v=data.map(c.val).filter(x=>x!=null).map(scale(c));if(v.length>1&&Math.max(...v)>Math.min(...v))span[c.key]=[Math.min(...v),Math.max(...v)]}
+  const tone=(c,r)=>{const s=span[c.key],v=c.val(r);if(!s||v==null)return"";let g=(scale(c)(v)-s[0])/(s[1]-s[0]);if(c.good==="lo")g=1-g;const a=Math.round(Math.abs(g-.5)*2*24);
+    return a<4?"":` style="background:color-mix(in srgb,var(${g>=.5?"--good":"--bad"}) ${a}%,var(--bg))"`};
+  const render=()=>{
+    const c=cols.find(c=>c.key===key);
+    const sorted=[...data].sort((a,b)=>{const x=c.val(a),y=c.val(b);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return(typeof x==="string"?x.localeCompare(y):x-y)*(asc?1:-1)});
+    el.innerHTML=`<thead><tr>${cols.map(c=>`<th class="${c.l?"l":""}"${c.key===key?` aria-sort="${asc?"ascending":"descending"}"`:""}><button type="button" data-k="${c.key}" title="${c.tip||"Sort"}">${c.label}</button></th>`).join("")}</tr></thead>
+      <tbody>${sorted.map(r=>`<tr class="${r.baseline?"ref":""}">${cols.map(c=>`<td class="${c.l?"l":""}${c.cls?" "+c.cls:""}${isBest(c,r)?" best":""}"${tone(c,r)}>${c.html(r)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+    el.querySelectorAll("th button").forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k===key)asc=!asc;else{key=k;const nc=cols.find(c=>c.key===k);asc=!!(nc.l||nc.best==="min")}render()});
+  };
+  render();
+}
+const NAME={key:"name",label:"Provider",l:true,val:short,html:r=>`<span class="pv">${sw(r)}<span>${short(r)}${r.baseline?'<span class="tag">baseline</span>':""}<small>${sub(r)}</small></span></span>`};
+const COL={
+  e2e:{key:"e2e",label:"E2E success",tip:"Share of runs where the agent found the root cause and fixed the cluster",best:"max",good:"hi",val:r=>r.e2e,
+    html:r=>r.e2e==null?dash:`<span class="e2e">${fmt(r.e2e,1,"","%")}<span class="meter"><i style="width:${r.e2e}%;background:${COLOR[r.config]}"></i></span></span>`},
+  cost:{key:"cost",label:"Cost / run",tip:"Agent and judge tokens for one run, at list price",best:"min",good:"lo",log:true,val:r=>r.cost_per_run,html:r=>show(r.cost_per_run,2,"$")},
+  sess:{key:"sess",label:"Session time p50",tip:"Median wall-clock time of one run",best:"min",good:"lo",val:sess,html:r=>show(sess(r),1,""," min")},
+  call:{key:"call",label:"LLM call p50",tip:"Median time for one model call to complete",best:"min",good:"lo",val:r=>r.call_latency_p50,html:r=>show(r.call_latency_p50,1,"","s")},
+  ttft:{key:"ttft",label:"TTFT p50",tip:"Median time to first token",best:"min",good:"lo",val:ttft,html:r=>ttft(r)==null&&r.baseline?'<span class="na" title="Not captured on this route">n/a</span>':show(ttft(r),2,"","s")},
+  tps:{key:"tps",label:"Output tok/s",tip:"Median output tokens per second per call",best:"max",good:"hi",val:r=>r.output_tps_p50,html:r=>show(r.output_tps_p50,0)},
+  quant:{key:"quant",label:"Quantization",tip:"Serving precision the provider reports for Kimi K3 (hover for the source). Moonshot trained the model with MXFP4 weights and MXFP8 activations.",val:r=>r.baseline?null:r.quant,html:r=>r.baseline?dash:`<span title="${r.vendor?.quant_source||""}">${r.quant==="not disclosed"?'<span class="na">not disclosed</span>':r.quant}</span>`},
+  rl:{key:"rl",label:"Rate-limited",tip:"Share of calls rate-limited (HTTP 429) and retried. Hover a value for the provider's account limit; full limits are in Detailed results › Rate limits",best:"min",good:"lo",val:r=>r.absorbed_429_pct,
+    html:r=>r.baseline?dash:`<span title="${r.vendor?.limit?"Account limit: "+r.vendor.limit:""}">${show(r.absorbed_429_pct,1,"","%")}</span>`},
+  tok:{key:"tok",label:"Tokens / run",tip:"Prompt tokens (cached or not) plus output tokens billed per run",val:tok,html:r=>fmtTok(tok(r))??dash},
+};
+table($("main"),[NAME,COL.e2e,COL.cost,COL.sess,COL.call,COL.ttft,COL.rl,COL.tok,COL.quant],ordered,"e2e",false,{heat:true});
+
+/* Charts */
+function bars(el,items,{f,max,ci}){
+  const W=Math.max(260,el.clientWidth),rh=28,L=128,R=56,H=items.length*rh;
+  const m=max??Math.max(...items.map(i=>i.v))*1.04;
+  const x=v=>L+Math.min(v,m)/m*(W-L-R);
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img">${items.map((it,k)=>{const y=k*rh;return `
+    <text x="${L-10}" y="${y+18}" text-anchor="end" class="lbl">${it.name}</text>
+    <rect x="${L}" y="${y+8}" width="${W-L-R}" height="13" rx="3" class="track"/>
+    <rect x="${L}" y="${y+8}" width="${Math.max(x(it.v)-L,2)}" height="13" rx="3" fill="${it.c}"/>
+    ${ci&&it.ci?`<path d="M${x(it.ci[0])} ${y+14.5}H${x(it.ci[1])}M${x(it.ci[0])} ${y+10}V${y+19}M${x(it.ci[1])} ${y+10}V${y+19}" class="whisk"/>`:""}
+    <text x="${W-R+8}" y="${y+18.5}" class="val">${f(it.v)}</text>`}).join("")}</svg>`;
+}
+const item=(r,v)=>({name:r.baseline?"Sonnet 5 (baseline)":r.name,v,c:COLOR[r.config],ci:r.e2e_ci95});
+function scatter(el){
+  const pts=rows.filter(r=>sess(r)!=null&&r.cost_per_run!=null).map(r=>({r,x:sess(r),y:r.cost_per_run}));
+  if(!pts.length){el.innerHTML="";return}
+  const W=Math.max(300,el.clientWidth),H=Math.round(Math.min(380,Math.max(280,W*.4))),L=56,R=20,T=12,B=48;
+  const x0=0,x1=Math.ceil(Math.max(...pts.map(p=>p.x))*1.3);
+  const ys=pts.map(p=>p.y),y0=Math.min(...ys)/1.5,y1=Math.max(...ys)*1.5;
+  const fx=v=>L+(v-x0)/(x1-x0)*(W-L-R);
+  const fy=v=>T+(1-(Math.log(v)-Math.log(y0))/(Math.log(y1)-Math.log(y0)))*(H-T-B);
+  const step=x1>10?2:1,xt=[];for(let v=0;v<=x1;v+=step)xt.push(v);
+  const yt=[0.25,0.5,1,2,5,10].filter(v=>v>=y0&&v<=y1);
+  const lab=pts.map(p=>({p,x:fx(p.x),y:fy(p.y),name:`${short(p.r)} · ${p.r.e2e.toFixed(1)}%`})).sort((a,b)=>a.y-b.y);
+  lab.forEach((l,i)=>{l.end=l.x+12+l.name.length*7>W-R;l.ly=l.y+4;for(let j=0;j<i;j++){const o=lab[j];if(o.end===l.end&&Math.abs(o.ly-l.ly)<15&&Math.abs(o.x-l.x)<180)l.ly=o.ly+15}});
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cost per run against median session time, one point per provider">
+    <defs><linearGradient id="scg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" style="stop-color:var(--good);stop-opacity:.16"/><stop offset=".5" style="stop-color:var(--bg);stop-opacity:0"/><stop offset="1" style="stop-color:var(--bad);stop-opacity:.12"/></linearGradient></defs>
+    <rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="url(#scg)"/>
+    <text x="${L+10}" y="${H-B-10}" class="zone good">Cheaper and faster</text>
+    <text x="${W-R-10}" y="${T+16}" text-anchor="end" class="zone bad">Pricier and slower</text>
+    ${yt.map(v=>`<line x1="${L}" x2="${W-R}" y1="${fy(v)}" y2="${fy(v)}" class="grid"/><text x="${L-8}" y="${fy(v)+4}" text-anchor="end" class="tick">$${v<1?v.toFixed(2):v}</text>`).join("")}
+    ${xt.map(v=>`<line x1="${fx(v)}" x2="${fx(v)}" y1="${T}" y2="${H-B}" class="grid"/><text x="${fx(v)}" y="${H-B+17}" text-anchor="middle" class="tick">${v}</text>`).join("")}
+    <text x="${(L+W-R)/2}" y="${H-8}" text-anchor="middle" class="axis">Median session time (minutes)</text>
+    <text transform="translate(12 ${(T+H-B)/2}) rotate(-90)" text-anchor="middle" class="axis">Cost per run (USD, log scale)</text>
+    ${lab.map(l=>`<g><title>${short(l.p.r)}: $${l.p.y.toFixed(2)} per run · ${l.p.x.toFixed(1)} min · ${l.p.r.e2e.toFixed(1)}% E2E</title><circle cx="${l.x}" cy="${l.y}" r="6.5" fill="${COLOR[l.p.r.config]}" class="dot"/><text x="${l.x+(l.end?-12:12)}" y="${l.ly}" text-anchor="${l.end?"end":"start"}" class="plbl">${l.name}</text></g>`).join("")}
+  </svg>`;
+}
+function drawCharts(){
+  bars($("ch-e2e"),ordered.filter(r=>r.e2e!=null).sort((a,b)=>b.e2e-a.e2e).map(r=>item(r,r.e2e)),{f:v=>v.toFixed(1)+"%",max:100,ci:true});
+  bars($("ch-cost"),ordered.filter(r=>r.cost_per_run!=null).sort((a,b)=>a.cost_per_run-b.cost_per_run).map(r=>item(r,r.cost_per_run)),{f:v=>"$"+v.toFixed(2)});
+  bars($("ch-time"),ordered.filter(r=>sess(r)!=null).sort((a,b)=>sess(a)-sess(b)).map(r=>item(r,sess(r))),{f:v=>v.toFixed(1)+" min"});
+  scatter($("sc"));
+}
+drawCharts();
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(drawCharts,120)});
+document.fonts?.ready.then(drawCharts);
+
+/* Findings */
+const passes=(r,id)=>{const v=[1,2,3].map(a=>r.per_problem?.[`${id}/a${a}`]).filter(x=>x!==undefined);return{k:v.filter(Boolean).length,n:v.length}};
+const prettyId=p=>{const s=p.id.replace("_"+p.app.replace(/-/g,"_"),"").replace(/_/g," ").replace(/\b(dns|cpu|pvc|hol)\b/g,w=>w.toUpperCase());return s[0].toUpperCase()+s.slice(1)};
+function permutation(prov,iters=4000){
+  const ids=D.problems.map(p=>p.id),A=[1,2,3];
+  const tot=prov.map(r=>ids.reduce((s,id)=>s+A.filter(a=>r.per_problem[`${id}/a${a}`]).length,0));
+  const obs=Math.max(...tot)-Math.min(...tot);
+  let s=7;const rnd=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  let hit=0;
+  for(let i=0;i<iters;i++){
+    const t=prov.map(()=>0);
+    for(const id of ids){
+      const pool=prov.flatMap(r=>A.map(a=>r.per_problem[`${id}/a${a}`]?1:0));
+      for(let j=pool.length-1;j>0;j--){const k=Math.floor(rnd()*(j+1));[pool[j],pool[k]]=[pool[k],pool[j]]}
+      prov.forEach((_,q)=>{t[q]+=pool[3*q]+pool[3*q+1]+pool[3*q+2]});
+    }
+    if(Math.max(...t)-Math.min(...t)>=obs)hit++;
+  }
+  return hit/iters;
+}
+(()=>{
+  if(done.length<2){$("find").innerHTML='<li><p>Findings appear once at least two providers have completed all runs.</p></li>';return}
+  const e=done.map(r=>r.e2e),m=done.map(r=>r.mit);
+  const p=permutation(done);
+  const cheap=minBy(done,r=>r.cost_per_run),dear=maxBy(done,r=>r.cost_per_run);
+  const fast=minBy(done,sess),slow=maxBy(done,sess);
+  const full=done.filter(r=>r.price&&r.price.cache_read==null).map(r=>r.name);
+  const rl=kimi.filter(r=>r.absorbed_429_pct>0).sort((a,b)=>b.absorbed_429_pct-a.absorbed_429_pct);
+  const noRl=done.filter(r=>r.absorbed_429_pct===0).map(r=>r.name);
+  const cost=r=>r.cost_per_run,usd=v=>"$"+v.toFixed(2),mins=v=>v.toFixed(1)+" min";
+  const par=r=>r.vendor?.parallel?`${r.vendor.parallel} agent${r.vendor.parallel>1?"s":""} in parallel`:"";
+  const F=[],notes=[`One benchmark: ${D.problems.length} incidents, ${N} runs per provider.`];
+  if(base){const lo=Math.min(...e)-base.e2e;
+    const pe=done.map(r=>pTwo(r.e2e_k,r.graded,base.e2e_k,base.graded));
+    const pr=a=>{const lo=Math.min(...a),hi=Math.max(...a);return fmtP(lo)===fmtP(hi)?fmtP(lo):`${fmtP(lo)}–${fmtP(hi).replace("p = ","")}`};
+    const cheaper=done.filter(r=>cost(r)<cost(base));
+    F.push([lo>0?"Open weights paid off.":"Open weights vs. the baseline.",
+      `Kimi K3 beat the Sonnet 5 baseline on every provider (${range(e,1,"","%")} vs. ${base.e2e.toFixed(1)}% E2E success)${cheaper.length?` and cost less per run on ${cheaper.length} of ${done.length}`:""}.`]);
+    notes.push(`Kimi K3 vs. Sonnet 5: ${pr(pe)} (two-proportion test); on the judge-free mitigation score the gap is smaller (${range(m,1,"","%")} vs. ${base.mit.toFixed(1)}%).`)}
+  if(cheap&&dear&&fast&&slow){
+    F.push([p>=.05?"The provider changed the bill, not the accuracy.":"Providers differed in accuracy, cost and speed.",
+      `Cost per run varied ${(cost(dear)/cost(cheap)).toFixed(1)}× (${usd(cost(cheap))}–${usd(cost(dear))}) and session time ${(sess(slow)/sess(fast)).toFixed(1)}× (${sess(fast).toFixed(1)}–${mins(sess(slow))})${p>=.05?", while E2E success stayed within run-to-run noise":""}.`]);
+    if(p>=.05)notes.push(`Between providers, random reshuffles of the outcomes give a spread as large as the observed one ${Math.round(p*100)}% of the time.`)}
+  if(dear&&full.length)F.push(["The list price hides the real bill.",
+    `${range(done.map(r=>r.cache_hit_pct),0,"","%")} of an agent's prompt tokens are cache hits, and ${list(full)} ${full.length>1?"bill":"bills"} them at the full input price, so ${dear.name} cost ${usd(cost(dear))} per run.`]);
+  F.push([rl.length?"Rate limits cap how many agents you can run.":"No provider rate-limited the agent.",
+    `${rl.map((r,i)=>i?`${r.name} ${r.absorbed_429_pct.toFixed(1)}% at ${r.vendor?.parallel??"?"}`:`${r.name} throttled ${r.absorbed_429_pct.toFixed(1)}% of calls at ${par(r)}`).join(" and ")}${noRl.length?`; ${list(noRl)} had none`:""}.`]);
+  $("find").innerHTML=F.map(([h,b])=>`<li><b>${h}</b> ${b}</li>`).join("");
+  $("find-sub").textContent=notes.join(" ");
+})();
+
+/* Detail tabs */
+const TABS=[["correct","Correctness"],["speed","Speed"],["cost","Cost"],["limits","Rate limits"],["inc","Per incident"],["notes","Provider notes"]];
+$("tabs").innerHTML=TABS.map(([k,t],i)=>`<button role="tab" type="button" data-t="${k}" aria-selected="${i===0}">${t}</button>`).join("");
+$("panes").innerHTML=TABS.map(([k],i)=>`<div class="pane" id="p-${k}"${i?" hidden":""}></div>`).join("");
+$("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("tabs").querySelectorAll("button").forEach(o=>o.setAttribute("aria-selected",o===b));TABS.forEach(([k])=>$("p-"+k).hidden=k!==b.dataset.t)});
+const pane=(k,note="")=>{$("p-"+k).innerHTML=`<div class="tw"><table class="data"></table></div>${note?`<p class="note">${note}</p>`:""}`;return $("p-"+k).querySelector("table")};
+
+const INCOMPLETE=rows.filter(r=>r.incomplete_after_reruns).map(r=>`${short(r)}: ${r.incomplete_after_reruns}`).join(", ");
+table(pane("correct",`Diagnosis is graded by SREGym's LLM judge, a model that marks the agent's root-cause answer correct or not. Mitigation is checked by the oracle on the live cluster. E2E success requires both. Intervals are 95% Wilson confidence intervals (CI). ${INCOMPLETE?`Runs still incomplete after 3 re-runs are scored as failures (${INCOMPLETE}). `:""}Published SREGym leaderboard for Claude Code + Claude Sonnet 5: ${D.leaderboard.diag}% diagnosis, ${D.leaderboard.mit}% mitigation, ${D.leaderboard.e2e}% E2E.`),[NAME,
+  {key:"graded",label:"Runs",val:r=>r.graded,html:r=>`${r.graded}/${N}`},
+  {key:"diag",label:"Diagnosed",tip:"Root cause identified (LLM judge)",best:"max",val:r=>r.diag,html:r=>show(r.diag,1,"","%")},
+  {key:"mit",label:"Mitigated",tip:"Cluster fixed (oracle)",best:"max",val:r=>r.mit,html:r=>show(r.mit,1,"","%")},
+  COL.e2e,
+  {key:"ci",label:"E2E 95% CI",val:r=>r.e2e_ci95?.[0],html:r=>r.e2e_ci95?`${r.e2e_ci95[0].toFixed(0)}–${r.e2e_ci95[1].toFixed(0)}%`:dash},
+],ordered,"e2e");
+
+table(pane("speed","Per-call numbers cover the agent's model calls. Session time is how long the agent worked on one run (Claude Code's own session duration). Time to fix is SREGym's time to mitigation, measured from fault injection, so it can be longer than session time."),[NAME,
+  COL.ttft,COL.call,
+  {key:"p95",label:"LLM call p95",best:"min",val:r=>r.call_latency_p95,html:r=>show(r.call_latency_p95,1,"","s")},
+  COL.tps,COL.sess,
+  {key:"smean",label:"Session time mean",best:"min",val:r=>r.agent_min_mean,html:r=>show(r.agent_min_mean,1,""," min")},
+  {key:"ttm",label:"Time to fix (mean)",best:"min",val:r=>r.ttm,html:r=>show(r.ttm==null?null:r.ttm/60,1,""," min")},
+],ordered,"sess",true);
+
+const price=r=>{const p=r.price;if(!p)return dash;return `$${p.input.toFixed(2)} / ${p.cache_read!=null?"$"+p.cache_read.toFixed(2):"no discount"} / $${p.output.toFixed(2)}${p.cache_write?` <span class="na">+$${p.cache_write} write</span>`:""}`};
+table(pane("cost","Cost is the tokens each provider reported for every call (agent and judge) × its published list price, with no credits or discounts."),[NAME,
+  {key:"price",label:"$ / 1M in / cached / out",val:r=>r.price?.cache_read??r.price?.input,html:price},
+  {key:"cache",label:"Cache hits",tip:"Share of prompt tokens served from the prompt cache",val:r=>r.cache_hit_pct,html:r=>show(r.cache_hit_pct,0,"","%")},
+  {key:"in",label:"Prompt tok / run",val:r=>r.input_tokens_per_run,html:r=>fmtTok(r.input_tokens_per_run)??dash},
+  {key:"out",label:"Output tok / run",val:r=>r.output_tokens_per_run,html:r=>fmtTok(r.output_tokens_per_run)??dash},
+  COL.cost,
+  {key:"c17",label:"17 incidents",best:"min",val:r=>r.cost_per_run==null?null:r.cost_per_run*17,html:r=>show(r.cost_per_run==null?null:r.cost_per_run*17,2,"$")},
+  {key:"c51",label:`${N} runs`,best:"min",val:r=>r.cost_per_run==null?null:r.cost_per_run*N,html:r=>show(r.cost_per_run==null?null:r.cost_per_run*N,2,"$")},
+],ordered,"cost",true);
+
+table(pane("limits","How often each provider throttled the agent at the concurrency we ran, and the account limit behind it. Each agent turn re-sends a 20–40K-token transcript, so a per-minute token cap sets how many agents a provider can serve. A rate-limited call (HTTP 429) is retried by the proxy and never reaches the agent; it only adds delay. A rate-limit re-run is a run whose limit outlasted the retries. Account limits are what each provider reported for our account (API response headers, AWS service quota or provider docs). A run still incomplete after 3 re-runs counts as a failure."),[NAME,
+  {key:"par",label:"Agents in parallel",tip:"How many agents ran against this provider at once",val:r=>r.vendor?.parallel??null,html:r=>r.vendor?.parallel??dash},
+  {key:"limit",label:"Account limit",l:true,cls:"w",val:r=>r.vendor?.limit||null,html:r=>r.vendor?.limit?`${r.vendor.limit}<small class="src">${r.vendor.source}</small>`:dash},
+  {key:"rl",label:"Rate-limited calls",tip:"Share of model calls that got HTTP 429 and were retried",best:"min",good:"lo",val:r=>r.absorbed_429_pct,html:r=>show(r.absorbed_429_pct,1,"","%")},
+  {key:"rr",label:"Rate-limit re-runs",tip:"Runs re-run because a rate limit outlasted the retries",best:"min",good:"lo",val:r=>r.rate_limited_reruns,html:r=>r.rate_limited_reruns??dash},
+  {key:"re",label:"Infra re-runs",tip:"Runs re-run after an infrastructure failure or incomplete run",best:"min",good:"lo",val:r=>r.reruns,html:r=>r.reruns??dash},
+  {key:"inc",label:"Failed after 3 re-runs",tip:"Still incomplete after 3 re-runs, scored as failures",best:"min",good:"lo",val:r=>r.incomplete_after_reruns,html:r=>r.incomplete_after_reruns??dash},
+],ordered,"rl",true,{heat:true});
+
+const heat=({k,n})=>{if(!n)return dash;const f=k/n;return `<span class="heat" style="background:color-mix(in srgb,var(--pass) ${Math.round(f*32)}%,transparent);color:${f?"var(--fg)":"var(--mute)"}">${k}/${n}</span>`};
+const allKimi=id=>kimi.reduce((a,r)=>{const p=passes(r,id);return{k:a.k+p.k,n:a.n+p.n}},{k:0,n:0});
+table(pane("inc","Runs per provider that diagnosed and fixed each incident, out of 3. The last column sums all Kimi K3 providers."),[
+  {key:"id",label:"Incident",l:true,val:p=>p.id,html:p=>`<span class="pv"><span>${prettyId(p)}<small>${p.app} · ${p.category}</small></span></span>`},
+  ...ordered.map(r=>({key:r.config,label:r.baseline?"Sonnet 5 (baseline)":r.name,val:p=>{const x=passes(r,p.id);return x.n?x.k/x.n:null},html:p=>heat(passes(r,p.id))})),
+  {key:"all",label:"All Kimi K3",val:p=>{const x=allKimi(p.id);return x.n?x.k/x.n:null},html:p=>{const x=allKimi(p.id);return x.n?`${x.k}/${x.n}`:dash}},
+],D.problems,"all");
+
+$("p-notes").innerHTML=`<div class="notes">${ordered.map(r=>{const n=r.notes||{},p=r.price;return `<div class="card">
+  <div class="pv">${sw(r)}<span><b>${short(r)}</b>${r.baseline?'<span class="tag">baseline</span>':""}<small>${sub(r)}</small></span></div>
+  <h4>Endpoint</h4><div class="route">${n.route||"–"}</div>
+  ${r.vendor?.serving?`<h4>Serving</h4><p>${r.vendor.serving}${!r.baseline&&r.quant?` · ${r.quant}${r.vendor.quant_source?` (${r.vendor.quant_source})`:""}`:""}${r.vendor.parallel?` · ${r.vendor.parallel} agent${r.vendor.parallel>1?"s":""} in parallel`:""}</p>`:""}
+  ${r.vendor?.limit?`<h4>Rate limit</h4><p>${r.vendor.limit} <span class="na">(${r.vendor.source})</span></p>`:""}
+  ${n.adapt?.length?`<h4>Setup</h4><ul>${n.adapt.map(x=>`<li>${x}</li>`).join("")}</ul>`:""}
+  ${n.insight?`<h4>Observed</h4><p>${n.insight}</p>`:""}
+  ${p?`<h4>Price per 1M tokens</h4><p class="route">$${p.input} in · ${p.cache_read!=null?"$"+p.cache_read+" cached":"no cache discount"} · $${p.output} out${p.cache_write?" · $"+p.cache_write+" cache write":""}</p>`:""}
+</div>`}).join("")}</div>`;
+</script>
+</body>
+</html>

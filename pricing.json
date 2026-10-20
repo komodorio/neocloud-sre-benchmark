@@ -1,0 +1,53 @@
+{
+  "fetched_at": "2026-10-18",
+  "unit": "USD per 1M tokens",
+  "kimi-k3-aws": {
+    "input": 3.3,
+    "output": 16.5,
+    "cache_read": 0.33,
+    "cache_write": 4.125,
+    "source": "AWS Price List API, AmazonBedrock us-east-1, moonshotai.kimi-k3 *-standard (us. inference profile)"
+  },
+  "kimi-k3-together": {
+    "input": 3.0,
+    "output": 15.0,
+    "cache_read": 0.3,
+    "source": "GET api.together.xyz/v1/models pricing",
+    "quantization": "FP4 (Together model page)"
+  },
+  "kimi-k3-nebius": {
+    "input": 3.0,
+    "output": 15.0,
+    "cache_read": null,
+    "quantization": "fp4",
+    "region": "eu-west2 (FR)",
+    "source": "GET api.studio.nebius.com/v1/models?verbose=true pricing"
+  },
+  "kimi-k3-baseten": {
+    "input": 3.0,
+    "output": 15.0,
+    "cache_read": 0.3,
+    "quantization": "fp8",
+    "source": "GET inference.baseten.co/v1/models pricing"
+  },
+  "kimi-k3-fireworks": {
+    "input": 3.0,
+    "output": 15.0,
+    "cache_read": 0.3,
+    "quantization": "FP8 (Fireworks model API defaultPrecision)",
+    "source": "fireworks.ai/models/fireworks/kimi-k3 serverless pricing, fetched 2026-10-18"
+  },
+  "kimi-k3-modal": {
+    "input": 3.0,
+    "output": 15.0,
+    "cache_read": 0.3,
+    "source": "modal.com/endpoints create page, Shared Endpoint pricing for moonshotai/Kimi-K3, fetched 2026-10-19"
+  },
+  "claude-sonnet-5": {
+    "input": 2.2,
+    "output": 11.0,
+    "cache_read": 0.22,
+    "cache_write": 2.75,
+    "source": "AWS Price List API, AmazonBedrockFoundationModels us-east-1, Claude Sonnet 5 *_standard (us. inference profile); cache write = 5-minute TTL, which Claude Code used (ephemeral_5m)"
+  }
+}
